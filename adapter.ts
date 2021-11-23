@@ -1,32 +1,32 @@
 import type { Address, Agent, Expression, ExpressionAdapter, PublicSharing, HolochainLanguageDelegate, LanguageContext, AgentService } from "@perspect3vism/ad4m";
 import { DNA_NICK } from "./dna";
 
-class ShortFormPutAdapter implements PublicSharing {
+class EventPutAdapter implements PublicSharing {
   #agent: AgentService;
-  #shortFormDNA: HolochainLanguageDelegate;
+  #eventDNA: HolochainLanguageDelegate;
 
   constructor(context: LanguageContext) {
     this.#agent = context.agent;
-    this.#shortFormDNA = context.Holochain as HolochainLanguageDelegate;
+    this.#eventDNA = context.Holochain as HolochainLanguageDelegate;
   }
 
-  async createPublic(shortForm: object): Promise<Address> {
-    const orderedShortFormData = Object.keys(shortForm)
+  async createPublic(event: object): Promise<Address> {
+    const orderedEventData = Object.keys(event)
       .sort()
       .reduce((obj, key) => {
-        obj[key] = shortForm[key];
+        obj[key] = event[key];
         return obj;
       }, {});
-    const expression = this.#agent.createSignedExpression(orderedShortFormData);
+    const expression = this.#agent.createSignedExpression(orderedEventData);
     const expressionPostData = {
       author: expression.author,
       timestamp: expression.timestamp,
       data: JSON.stringify(expression.data),
       proof: expression.proof,
     };
-    const res = await this.#shortFormDNA.call(
+    const res = await this.#eventDNA.call(
       DNA_NICK,
-      "shortform",
+      "event",
       "create_public_expression",
       expressionPostData
     );
@@ -34,21 +34,21 @@ class ShortFormPutAdapter implements PublicSharing {
   }
 }
 
-export default class ShortFormAdapter implements ExpressionAdapter {
-  #shortFormDNA: HolochainLanguageDelegate;
+export default class EventAdapter implements ExpressionAdapter {
+  #eventDNA: HolochainLanguageDelegate;
 
   putAdapter: PublicSharing;
 
   constructor(context: LanguageContext) {
-    this.#shortFormDNA = context.Holochain as HolochainLanguageDelegate;
-    this.putAdapter = new ShortFormPutAdapter(context);
+    this.#eventDNA = context.Holochain as HolochainLanguageDelegate;
+    this.putAdapter = new EventPutAdapter(context);
   }
 
   async get(address: Address): Promise<Expression> {
     const hash = Buffer.from(address, "hex");
-    const expression = await this.#shortFormDNA.call(
+    const expression = await this.#eventDNA.call(
       DNA_NICK,
-      "shortform",
+      "event",
       "get_expression_by_address",
       hash
     );
@@ -67,7 +67,7 @@ export default class ShortFormAdapter implements ExpressionAdapter {
     //@ts-ignore
     const obj = JSON.parse(content);
 
-    this.#shortFormDNA.call(DNA_NICK, "shortform", "send_private", {
+    this.#eventDNA.call(DNA_NICK, "event", "send_private", {
       to: to,
       data: JSON.stringify(obj),
     });
@@ -79,9 +79,9 @@ export default class ShortFormAdapter implements ExpressionAdapter {
     if (filterFrom != null) {
       filterFrom = filterFrom[0];
     }
-    const res = await this.#shortFormDNA.call(
+    const res = await this.#eventDNA.call(
       DNA_NICK,
-      "shortform",
+      "event",
       "get_inbox",
       { from: filterFrom, page_size: 0, page_number: 0 }
     );

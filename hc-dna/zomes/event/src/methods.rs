@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use crate::{inputs::CreateExpression, outputs::HolochainData, utils::err};
 use crate::{
     ExpressionDNA, ExpressionResponse, PrivateAcaiAgent, PrivateExpressionResponse,
-    PrivateShortFormExpression, ShortFormExpression,
+    PrivateEventExpression, EventExpression,
 };
 use crate::errors::ExpressionResult;
 
@@ -12,7 +12,7 @@ impl ExpressionDNA {
     /// Create an expression and link it to yourself publicly
     pub fn create_public_expression(content: CreateExpression) -> ExpressionResult<ExpressionResponse> {
         // Serialize data to check its valid and prepare for entry into source chain
-        let expression = ShortFormExpression::try_from(content)?;
+        let expression = EventExpression::try_from(content)?;
         let expression_hash = hash_entry(&expression)?;
         create_entry(&expression)?;
 
@@ -51,7 +51,7 @@ impl ExpressionDNA {
                 let expression_element = get(link.target, GetOptions::default())?
                     .ok_or(err("Could not get entry after commit"))?;
                 let timestamp = expression_element.header().timestamp().as_seconds_and_nanos();
-                let exp_data: ShortFormExpression = expression_element
+                let exp_data: EventExpression = expression_element
                     .entry()
                     .to_app_option()?
                     .ok_or(WasmError::Host(String::from(
@@ -79,7 +79,7 @@ impl ExpressionDNA {
         let expression = get(address, GetOptions::default())?;
         match expression {
             Some(expression_element) => {
-                let exp_data: ShortFormExpression = expression_element
+                let exp_data: EventExpression = expression_element
                     .entry()
                     .to_app_option()?
                     .ok_or(WasmError::Host(String::from(
@@ -107,10 +107,10 @@ impl ExpressionDNA {
     pub fn send_private(
         to: AgentPubKey,
         expression: CreateExpression,
-    ) -> ExpressionResult<PrivateShortFormExpression> {
+    ) -> ExpressionResult<PrivateEventExpression> {
         // Serialize data to check its valid
-        let expression = ShortFormExpression::try_from(expression)?;
-        let expression = PrivateShortFormExpression::from(expression);
+        let expression = EventExpression::try_from(expression)?;
+        let expression = PrivateEventExpression::from(expression);
 
         //Call the users remote zome
         //TODO here we want some pattern better than this; only having this succeed when agent is online is not great
@@ -147,7 +147,7 @@ impl ExpressionDNA {
                         let expression_element = get(link.target, GetOptions::default())?
                             .ok_or(err("Could not get entry after commit"))?;
                         let timestamp = expression_element.header().timestamp().as_seconds_and_nanos();
-                        let exp_data: PrivateShortFormExpression = expression_element
+                        let exp_data: PrivateEventExpression = expression_element
                             .entry()
                             .to_app_option()?
                             .ok_or(WasmError::Host(String::from(
@@ -169,7 +169,7 @@ impl ExpressionDNA {
                     .collect::<Result<Vec<PrivateExpressionResponse>, WasmError>>()?)
             }
             None => {
-                let priv_exp_entry_def = PrivateShortFormExpression::entry_def();
+                let priv_exp_entry_def = PrivateEventExpression::entry_def();
                 //Not sure about the entrytype here...
                 let query = query(QueryFilter::new().entry_type(EntryType::App(
                     AppEntryType::new(1.into(), 0.into(), priv_exp_entry_def.visibility),
@@ -177,7 +177,7 @@ impl ExpressionDNA {
                 Ok(query
                     .into_iter()
                     .map(|expression_element| {
-                        let exp_data: PrivateShortFormExpression = expression_element
+                        let exp_data: PrivateEventExpression = expression_element
                             .entry()
                             .to_app_option()?
                             .ok_or(WasmError::Host(String::from(
@@ -202,7 +202,7 @@ impl ExpressionDNA {
         }
     }
 
-    pub fn recv_private_expression(create_data: PrivateShortFormExpression) -> ExpressionResult<()> {
+    pub fn recv_private_expression(create_data: PrivateEventExpression) -> ExpressionResult<()> {
         let agent_entry = PrivateAcaiAgent(create_data.author.clone());
         let agent_entry_hash = hash_entry(&agent_entry)?;
         create_entry(&agent_entry)?;

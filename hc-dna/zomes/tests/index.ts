@@ -2,6 +2,7 @@ import { Orchestrator, Config, InstallAgentsHapps } from '@holochain/tryorama'
 import { TransportConfigType, ProxyAcceptConfig, ProxyConfigType } from '@holochain/tryorama'
 import { HoloHash, InstallAppRequest } from '@holochain/conductor-api'
 import path from 'path'
+import { NONAME } from 'dns';
 
 const network = {
     transport_pool: [{
@@ -18,7 +19,7 @@ const network = {
 const conductorConfig = Config.gen();
 
 // Construct proper paths for your DNAs
-const shortForm = path.join(__dirname, '../../workdir/shortform-expression.dna')
+const event = path.join(__dirname, '../../workdir/event-expression.dna')
 
 // create an InstallAgentsHapps array with your DNAs to tell tryorama what
 // to install into the conductor.
@@ -26,7 +27,7 @@ const installation: InstallAgentsHapps = [
   // agent 0
   [
     // happ 0
-    [shortForm] // contains 1 dna, the "shortform" dna
+    [event] // contains 1 dna, the "shortform" dna
   ]
 ]
 
@@ -41,9 +42,17 @@ orchestrator.registerScenario("create and get public expression", async (s, t) =
   const [[alice_happ]] = await alice.installAgentsHapps(installation)
   //const [[bob_happ]] = await bob.installAgentsHapps(installation)
 
+  const eventData = {
+    title: "test event",
+    description: "something about the event",
+    start_time: new Date("2021-11-22"),
+    end_time: new Date("2021-11-22"),
+    location: "Cyberspace",
+    invitees: [],
+  }
   //Create a public expression from alice
-  const create_exp = await alice_happ.cells[0].call("shortform", "create_public_expression", 
-    {data: JSON.stringify({background: [], body: "A test expression"}), author: "did://alice", timestamp: new Date().toISOString(), proof: {key: "key", signature: "sig"}})
+  const create_exp = await alice_happ.cells[0].call("event", "create_public_expression", 
+    {data: JSON.stringify(eventData), author: "did://alice", timestamp: new Date().toISOString(), proof: {key: "key", signature: "sig"}})
   console.log("Created expression", create_exp);
   t.notEqual(create_exp.expression_data, undefined);
   
@@ -56,12 +65,12 @@ orchestrator.registerScenario("create and get public expression", async (s, t) =
   let current = new Date().toISOString();
   console.log("Getting date", current);
   //Get agent alice expressions from bob
-  const get_exps = await alice_happ.cells[0].call("shortform", "get_by_author", {author: "did://alice", from: date.toISOString(), until: new Date().toISOString()})
+  const get_exps = await alice_happ.cells[0].call("event", "get_by_author", {author: "did://alice", from: date.toISOString(), until: new Date().toISOString()})
   console.log("Got expressions for alice: ", get_exps);
   t.equal(get_exps.length, 1);
 
   //Try and get the expression by address
-  const get_exp = await alice_happ.cells[0].call("shortform", "get_expression_by_address", create_exp.holochain_data.element.signed_header.header.hash)
+  const get_exp = await alice_happ.cells[0].call("event", "get_expression_by_address", create_exp.holochain_data.element.signed_header.header.hash)
   console.log("Got exp by address", get_exp);
   t.notEqual(get_exp.expression_data, undefined);
   t.pass();
@@ -74,15 +83,23 @@ orchestrator.registerScenario("test send and receive private", async (s, t) => {
 
   await s.shareAllNodes([alice, bob])
 
-  const send = await alice_happ.cells[0].call("shortform", "send_private", {to: bob_happ.agent, expression: {data: JSON.stringify({background: [], body: "A private test expression"}), author: {did: "did://alice", name: null, email: null}, timestamp: new Date().toISOString(), proof: {key: "key", signature: "sig"}}})
+  const eventData = {
+    title: "test event",
+    description: "something about the event",
+    start_time: new Date("2021-11-22"),
+    end_time: new Date("2021-11-22"),
+    location: "Cyberspace",
+    invitees: [],
+  }
+  const send = await alice_happ.cells[0].call("event", "send_private", {to: bob_happ.agent, expression: {data: JSON.stringify(eventData), author: {did: "did://alice", name: null, email: null}, timestamp: new Date().toISOString(), proof: {key: "key", signature: "sig"}}})
   console.log("Created expression", send);
   t.ok(send);
 
-  const get_inbox = await bob_happ.cells[0].call("shortform", "inbox", {from: null, page_size: 10, page_number: 0})
+  const get_inbox = await bob_happ.cells[0].call("event", "inbox", {from: null, page_size: 10, page_number: 0})
   console.log("get inbox", get_inbox);
   t.deepEqual(get_inbox.length, 1);
 
-  const get_inbox_from = await bob_happ.cells[0].call("shortform", "inbox", {from: "did://alice", page_size: 10, page_number: 0})
+  const get_inbox_from = await bob_happ.cells[0].call("event", "inbox", {from: "did://alice", page_size: 10, page_number: 0})
   t.deepEqual(get_inbox_from.length, 1)
   t.pass();
 })

@@ -1,6 +1,6 @@
 import type { Address, Agent, Language, HolochainLanguageDelegate, LanguageContext, Interaction} from "@perspect3vism/ad4m";
-import ShortFormAdapter from "./adapter";
-import ShortFormAuthorAdapter from "./authorAdapter";
+import EventAdapter from "./adapter";
+import EventAuthorAdapter from "./authorAdapter";
 import Icon from "./build/Icon.js";
 import ConstructorIcon from "./build/ConstructorIcon.js";
 import { JuntoSettingsUI } from "./SettingsUI";
@@ -19,14 +19,14 @@ function interactions(expression: Address): Interaction[] {
   return [];
 }
 
-export const name = "junto-shortform";
+export const name = "event";
 
 export default async function create(context: LanguageContext): Promise<Language> {
   const Holochain = context.Holochain as HolochainLanguageDelegate;
   await Holochain.registerDNAs([{ file: DNA, nick: DNA_NICK }]);
 
-  const expressionAdapter = new ShortFormAdapter(context);
-  const authorAdaptor = new ShortFormAuthorAdapter(context);
+  const expressionAdapter = new EventAdapter(context);
+  const authorAdaptor = new EventAuthorAdapter(context);
   const settingsUI = new JuntoSettingsUI();
   const expressionUI = new ShortFormExpressionUI();
 

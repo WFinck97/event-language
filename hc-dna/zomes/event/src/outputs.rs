@@ -1,18 +1,18 @@
 use hdk::prelude::*;
 
-use crate::{PrivateShortFormExpression, ShortFormExpression};
+use crate::{PrivateEventExpression, EventExpression};
 
 #[derive(SerializedBytes, Serialize, Deserialize, Debug)]
 pub struct ExpressionResponse {
     //#[serde(flatten)]
-    pub expression_data: ShortFormExpression,
+    pub expression_data: EventExpression,
     pub holochain_data: HolochainData,
 }
 
 #[derive(SerializedBytes, Serialize, Deserialize, Debug)]
 pub struct PrivateExpressionResponse {
     //#[serde(flatten)]
-    pub expression_data: PrivateShortFormExpression,
+    pub expression_data: PrivateEventExpression,
     pub holochain_data: HolochainData,
 }
 

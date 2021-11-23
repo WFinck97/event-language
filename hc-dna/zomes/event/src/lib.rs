@@ -12,28 +12,32 @@ use inputs::*;
 use outputs::*;
 
 /// Expression data this DNA is "hosting"
-#[hdk_entry(id = "shortform_expression", visibility = "public")]
+#[hdk_entry(id = "event_expression", visibility = "public")]
 #[derive(Clone)]
-pub struct ShortFormExpression {
-    data: ShortFormExpressionData,
+pub struct EventExpression {
+    data: EventExpressionData,
     author: String,
     timestamp: DateTime<Utc>,
     proof: ExpressionProof,
 }
 
 /// Expression data this DNA is "hosting". This variant is private and will be used for p2p messaging.
-#[hdk_entry(id = "private_shortform_expression", visibility = "private")]
-pub struct PrivateShortFormExpression {
-    data: ShortFormExpressionData,
+#[hdk_entry(id = "private_event_expression", visibility = "private")]
+pub struct PrivateEventExpression {
+    data: EventExpressionData,
     author: String,
     timestamp: DateTime<Utc>,
     proof: ExpressionProof,
 }
 
 #[derive(Serialize, Deserialize, Clone, SerializedBytes, Debug)]
-pub struct ShortFormExpressionData {
-    background: Vec<String>,
-    body: String,
+pub struct EventExpressionData {
+    pub title: String,
+    pub description: String,
+    pub start_time: DateTime<Utc>,
+    pub end_time: DateTime<Utc>,
+    pub location: String,
+    pub invitees: Vec<String>,
 }
 
 #[hdk_entry(id = "private_acai_agent", visibility = "private")]
@@ -42,8 +46,8 @@ pub struct PrivateAcaiAgent(pub String);
 pub struct ExpressionDNA();
 
 entry_defs![
-    ShortFormExpression::entry_def(),
-    PrivateShortFormExpression::entry_def(),
+    EventExpression::entry_def(),
+    PrivateEventExpression::entry_def(),
     PrivateAcaiAgent::entry_def(),
     Path::entry_def()
 ];
@@ -67,7 +71,7 @@ fn init(_: ()) -> ExternResult<InitCallbackResult> {
 }
 
 #[hdk_extern]
-pub fn recv_private_expression(create_data: PrivateShortFormExpression) -> ExternResult<()> {
+pub fn recv_private_expression(create_data: PrivateEventExpression) -> ExternResult<()> {
     ExpressionDNA::recv_private_expression(create_data).map_err(|err| WasmError::Host(err.to_string()))
 }
 
@@ -96,7 +100,7 @@ pub fn get_expression_by_address(address: AnyDhtHash) -> ExternResult<MaybeExpre
 
 /// Send an expression to someone privately p2p
 #[hdk_extern]
-pub fn send_private(send_data: SendPrivate) -> ExternResult<PrivateShortFormExpression> {
+pub fn send_private(send_data: SendPrivate) -> ExternResult<PrivateEventExpression> {
     Ok(ExpressionDNA::send_private(
         send_data.to,
         send_data.expression,

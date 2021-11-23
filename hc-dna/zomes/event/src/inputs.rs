@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use hdk::prelude::*;
 
-use crate::{PrivateShortFormExpression, ShortFormExpression, ShortFormExpressionData};
+use crate::{PrivateEventExpression, EventExpression, EventExpressionData};
 
 use crate::utils::err;
 
@@ -19,14 +19,14 @@ pub struct ExpressionProof {
     pub key: String,
 }
 
-impl TryFrom<CreateExpression> for ShortFormExpression {
+impl TryFrom<CreateExpression> for EventExpression {
     type Error = WasmError;
 
     fn try_from(content: CreateExpression) -> Result<Self, Self::Error> {
-        let expression: ShortFormExpressionData = serde_json::from_str(&content.data)
-            .map_err(|_| err("Could not serialized content into ShortForm expression type"))?;
+        let expression: EventExpressionData = serde_json::from_str(&content.data)
+            .map_err(|_| err("Could not serialized content into Event expression type"))?;
 
-        Ok(ShortFormExpression {
+        Ok(EventExpression {
             data: expression,
             author: content.author,
             timestamp: content.timestamp,
@@ -35,9 +35,9 @@ impl TryFrom<CreateExpression> for ShortFormExpression {
     }
 }
 
-impl From<ShortFormExpression> for PrivateShortFormExpression {
-    fn from(content: ShortFormExpression) -> Self {
-        PrivateShortFormExpression {
+impl From<EventExpression> for PrivateEventExpression {
+    fn from(content: EventExpression) -> Self {
+        PrivateEventExpression {
             data: content.data,
             author: content.author,
             timestamp: content.timestamp,

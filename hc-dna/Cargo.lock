@@ -125,6 +125,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d9435d864e017c3c6afeac1654189b06cdb491cf2ff73dbf0d73b0f292f42ff8"
 
 [[package]]
+name = "event_expression"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "derive_more",
+ "hc_time_index",
+ "hdk",
+ "holo_hash 0.0.5",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
 name = "fixedbitset"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -873,20 +887,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "740223c51853f3145fe7c90360d2d4232f2b62e3449489c207eccde818979982"
 dependencies = [
  "lazy_static",
-]
-
-[[package]]
-name = "shortform_expression"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "derive_more",
- "hc_time_index",
- "hdk",
- "holo_hash 0.0.5",
- "serde",
- "serde_json",
- "thiserror",
 ]
 
 [[package]]

@@ -1,12 +1,12 @@
 [package]
-name = "shortform_expression"
+name = "event_expression"
 version = "0.1.0"
 authors = ["jdeepee <joshuadparkin@gmail.com>"]
 edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-name = "shortform_expression"
+name = "event_expression"
 
 [dependencies]
 derive_more = "0"
